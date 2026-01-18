@@ -4,3 +4,4 @@ logs/
 *.lock.db 
 *.trace.db 
 nul 
+instruccions_road_map.md 
