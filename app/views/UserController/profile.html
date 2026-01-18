@@ -1,0 +1,285 @@
+#{extends 'main.html' /}
+#{set title:'Mi Perfil - BYCar' /}
+
+<div class="premium-container" style="align-items: flex-start; padding-top: 2rem;">
+    <div class="premium-card card-wide animate-in">
+        <!-- Header del Perfil -->
+        <div class="card-header-premium" style="margin-bottom: 2rem;">
+            <h2>Mi Perfil</h2>
+            <p>Gestiona tu informacion personal</p>
+        </div>
+
+        <!-- Mensajes Flash -->
+        #{if flash.success}
+            <div class="alert alert-success animate-fade">
+                ${flash.success}
+            </div>
+        #{/if}
+
+        #{if flash.error}
+            <div class="alert alert-danger animate-fade">
+                ${flash.error}
+            </div>
+        #{/if}
+
+        <!-- Wallet BYCar -->
+        <div class="profile-wallet-card">
+            <div class="profile-wallet-header">
+                <div class="wallet-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                        <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/>
+                    </svg>
+                </div>
+                <div class="wallet-title">
+                    <h3>Mi Wallet BYCar</h3>
+                    <p>Tu cartera virtual para compras rapidas y seguras</p>
+                </div>
+            </div>
+            <div class="profile-wallet-balance">
+                <span class="balance-label">Saldo disponible</span>
+                <span class="balance-amount">${user.saldo.format('###,###').replace(',', '.')} &euro;</span>
+            </div>
+            <a href="@{UserController.recargarSaldo()}" class="wallet-recharge-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Recargar Saldo
+            </a>
+        </div>
+
+        <!-- Grid de Perfil -->
+        <div class="profile-grid">
+            <!-- Informacion de la Cuenta (Solo lectura) -->
+            <div class="profile-section">
+                <div class="profile-section-header">
+                    <div class="icon">U</div>
+                    <h3>Informacion de la Cuenta</h3>
+                </div>
+
+                <div class="profile-info-item">
+                    <label>Nombre de Usuario</label>
+                    <div class="value">${user.userName}</div>
+                    <small>No se puede modificar</small>
+                </div>
+
+                <div class="profile-info-item">
+                    <label>Email</label>
+                    <div class="value">${user.email}</div>
+                    <small>No se puede modificar</small>
+                </div>
+
+                <div class="profile-info-item">
+                    <label>Tipo de Usuario</label>
+                    <div class="value">
+                        #{if user.isAdmin}
+                            <span class="badge bg-danger">Administrador</span>
+                        #{/if}
+                        #{else}
+                            <span class="badge bg-primary">Cliente</span>
+                        #{/else}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Edicion -->
+            <div class="profile-section">
+                <div class="profile-section-header">
+                    <div class="icon">E</div>
+                    <h3>Editar Informacion</h3>
+                </div>
+
+                #{form @UserController.updateProfile(), method:'POST', class:'premium-form'}
+                    <div class="form-group-premium">
+                        <label for="fullName">Nombre Completo</label>
+                        <input type="text"
+                               class="premium-input"
+                               id="fullName"
+                               name="fullName"
+                               value="${user.fullName}"
+                               required>
+                    </div>
+
+                    <div class="form-group-premium">
+                        <label for="phone">Telefono</label>
+                        <input type="tel"
+                               class="premium-input"
+                               id="phone"
+                               name="phone"
+                               value="${user.phone}"
+                               required>
+                    </div>
+
+                    <div class="form-group-premium">
+                        <label for="address">Direccion</label>
+                        <textarea class="premium-input"
+                                  id="address"
+                                  name="address"
+                                  rows="3"
+                                  required>${user.address}</textarea>
+                    </div>
+
+                    <button type="submit" class="premium-btn premium-btn-block">
+                        Guardar Cambios
+                    </button>
+                #{/form}
+            </div>
+        </div>
+
+        <!-- Acciones de la Cuenta -->
+        <div class="profile-section" style="margin-top: 1.5rem;">
+            <div class="profile-section-header">
+                <div class="icon">A</div>
+                <h3>Acciones de la Cuenta</h3>
+            </div>
+
+            <div class="d-flex gap-3" style="flex-wrap: wrap;">
+                <a href="@{Application.index()}" class="premium-btn premium-btn-secondary">
+                    Volver al Inicio
+                </a>
+                <a href="@{UserController.logout()}" class="premium-btn premium-btn-danger">
+                    Cerrar Sesion
+                </a>
+                #{if !user.isAdmin}
+                <button type="button" class="btn-delete-account-outline" onclick="showDeleteAccountModal()">
+                    Eliminar cuenta
+                </button>
+                #{/if}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar Cuenta -->
+#{if !user.isAdmin}
+<div class="modal-overlay" id="deleteAccountModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title">Eliminar cuenta</h3>
+            <button type="button" class="modal-close" onclick="hideDeleteAccountModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 1.25rem;">
+                Esta accion eliminara permanentemente tu cuenta y todos tus datos asociados.
+            </p>
+            <p style="margin-bottom: 0.75rem;">
+                Para confirmar, escribe <strong style="color: #dc3545;">ELIMINAR</strong> en el campo:
+            </p>
+            <input type="text"
+                   id="confirmDeleteInput"
+                   class="premium-input"
+                   placeholder="Escribe ELIMINAR"
+                   autocomplete="off">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="hideDeleteAccountModal()">
+                Cancelar
+            </button>
+            <form action="@{UserController.deleteAccount()}" method="POST" style="display: inline;">
+                <input type="hidden" name="confirmText" id="confirmTextHidden" value="">
+                <button type="submit" id="confirmDeleteBtn" class="btn-modal-confirm-danger" disabled>
+                    Eliminar cuenta
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Boton Eliminar Cuenta - Estilo Outline */
+.btn-delete-account-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid rgba(220, 53, 69, 0.5);
+    color: #dc3545;
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete-account-outline:hover {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+}
+
+/* Boton Confirmar Eliminacion */
+.btn-modal-confirm-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background: #dc3545;
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-modal-confirm-danger:hover:not(:disabled) {
+    background: #c82333;
+}
+
+.btn-modal-confirm-danger:disabled {
+    background: rgba(108, 117, 125, 0.5);
+    cursor: not-allowed;
+}
+</style>
+
+<script>
+function showDeleteAccountModal() {
+    document.getElementById('deleteAccountModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('confirmDeleteInput').value = '';
+    document.getElementById('confirmTextHidden').value = '';
+    document.getElementById('confirmDeleteBtn').disabled = true;
+}
+
+function hideDeleteAccountModal() {
+    document.getElementById('deleteAccountModal').classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('confirmDeleteInput').value = '';
+}
+
+// Escuchar input para habilitar/deshabilitar boton
+document.getElementById('confirmDeleteInput').addEventListener('input', function() {
+    var btn = document.getElementById('confirmDeleteBtn');
+    var hidden = document.getElementById('confirmTextHidden');
+
+    if (this.value === 'ELIMINAR') {
+        btn.disabled = false;
+        hidden.value = this.value;
+    } else {
+        btn.disabled = true;
+        hidden.value = '';
+    }
+});
+
+// Cerrar modal al hacer click fuera
+document.getElementById('deleteAccountModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideDeleteAccountModal();
+    }
+});
+
+// Cerrar modal con tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideDeleteAccountModal();
+    }
+});
+</script>
+#{/if}

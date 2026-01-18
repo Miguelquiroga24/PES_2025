@@ -1,0 +1,121 @@
+#{extends 'main.html' /}
+#{set title:'Registro - BYCar' /}
+
+<div class="premium-container">
+    <div class="premium-card card-3d animate-in" style="max-width: 560px;">
+        <!-- Header -->
+        <div class="card-header-premium">
+            <h2>Crear Cuenta</h2>
+            <p>Únete a BYCar y descubre vehículos de lujo</p>
+        </div>
+
+        <!-- Mensajes Flash -->
+        #{if flash.success}
+            <div class="alert alert-success animate-fade">
+                ${flash.success}
+            </div>
+        #{/if}
+
+        #{if flash.error}
+            <div class="alert alert-danger animate-fade">
+                ${flash.error}
+            </div>
+        #{/if}
+
+        <!-- Formulario de Registro -->
+        #{form @UserController.createUser(), method:'POST', class:'premium-form'}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group-premium">
+                        <label for="userName">Nombre de Usuario</label>
+                        <input type="text"
+                               class="premium-input"
+                               id="userName"
+                               name="userName"
+                               placeholder="usuario123"
+                               minlength="3"
+                               value="${flash.userName}"
+                               autocomplete="username"
+                               required>
+                        <small class="text-muted">Mínimo 3 caracteres</small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group-premium">
+                        <label for="email">Email</label>
+                        <input type="email"
+                               class="premium-input"
+                               id="email"
+                               name="email"
+                               placeholder="tu@email.com"
+                               value="${flash.email}"
+                               autocomplete="email"
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group-premium">
+                <label for="password">Contraseña</label>
+                <input type="password"
+                       class="premium-input"
+                       id="password"
+                       name="password"
+                       placeholder="••••••••"
+                       minlength="8"
+                       autocomplete="new-password"
+                       required>
+                <small class="text-muted">Mínimo 8 caracteres</small>
+            </div>
+
+            <div class="form-group-premium">
+                <label for="fullName">Nombre Completo</label>
+                <input type="text"
+                       class="premium-input"
+                       id="fullName"
+                       name="fullName"
+                       placeholder="Juan Pérez García"
+                       value="${flash.fullName}"
+                       autocomplete="name"
+                       required>
+            </div>
+
+            <div class="form-group-premium">
+                <label for="phone">Teléfono</label>
+                <input type="tel"
+                       class="premium-input"
+                       id="phone"
+                       name="phone"
+                       placeholder="+34 612 345 678"
+                       value="${flash.phone}"
+                       autocomplete="tel"
+                       required>
+            </div>
+
+            <div class="form-group-premium">
+                <label for="address">Dirección</label>
+                <textarea class="premium-input"
+                          id="address"
+                          name="address"
+                          rows="2"
+                          placeholder="Calle, Número, Ciudad, CP"
+                          autocomplete="street-address"
+                          required>${flash.address}</textarea>
+            </div>
+
+            <button type="submit" class="premium-btn premium-btn-block">
+                Crear Cuenta
+            </button>
+        #{/form}
+
+        <!-- Divider -->
+        <div class="divider-text">o</div>
+
+        <!-- Link a Login -->
+        <p class="text-center text-secondary">
+            ¿Ya tienes cuenta?
+            <a href="@{UserController.login()}">Inicia sesión aquí</a>
+        </p>
+    </div>
+</div>

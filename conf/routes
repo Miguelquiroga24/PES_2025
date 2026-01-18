@@ -1,0 +1,81 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                                       Application.index
+
+# Ignore favicon requests
+GET     /favicon.ico                            404
+
+# Map static resources from the /app/public folder to the /public path
+GET     /public/                                staticDir:public
+
+# User Authentication Routes
+GET     /login                                  UserController.login
+POST    /login                                  UserController.authenticate
+GET     /register                               UserController.register
+POST    /register                               UserController.createUser
+GET     /logout                                 UserController.logout
+GET     /profile                                UserController.profile
+POST    /profile/update                         UserController.updateProfile
+
+# User Wallet Routes
+GET     /user/recargarSaldo                     UserController.recargarSaldo
+POST    /user/processRecargarSaldo              UserController.processRecargarSaldo
+
+# User Account Management
+POST    /user/deleteAccount                     UserController.deleteAccount
+
+# Car Catalog Routes
+GET     /catalog                                CarController.catalog
+GET     /car/compare                            CarController.compare
+GET     /car/{id}                               CarController.detail
+
+# Favorites Routes
+GET     /favorites                              FavoriteController.index
+POST    /favorites/add                          FavoriteController.add
+POST    /favorites/remove                       FavoriteController.remove
+GET     /favorites/isFavorite                   FavoriteController.isFavorite
+GET     /favorites/count                        FavoriteController.count
+GET     /favorites/ids                          FavoriteController.ids
+
+# Order - Carrito
+GET     /order/cart                             OrderController.viewCart
+POST    /order/addToCart                        OrderController.addToCart
+POST    /order/removeFromCart                   OrderController.removeFromCart
+GET     /order/hasCart                          OrderController.hasCart
+
+# Order - Checkout
+GET     /order/checkout                         OrderController.checkout
+POST    /order/processPayment                   OrderController.processPayment
+GET     /order/confirmation/{orderId}           OrderController.confirmation
+
+# Order - Historial
+GET     /order/history                          OrderController.history
+GET     /order/detail/{orderId}                 OrderController.orderDetail
+POST    /order/confirmDelivery/{orderId}        OrderController.confirmDelivery
+
+# Admin Panel
+GET     /admin                                  AdminController.dashboard
+GET     /admin/dashboard                        AdminController.dashboard
+GET     /admin/cars                             AdminController.manageCars
+GET     /admin/orders                           AdminController.manageOrders
+GET     /admin/users                            AdminController.manageUsers
+
+# Admin - CRUD Coches
+GET     /admin/cars/new                         AdminController.newCar
+POST    /admin/cars/create                      AdminController.createCar
+GET     /admin/cars/edit/{id}                   AdminController.editCar
+POST    /admin/cars/update/{id}                 AdminController.updateCar
+POST    /admin/cars/delete/{id}                 AdminController.deleteCar
+
+# Admin - Gestion de Pedidos
+GET     /admin/orders/detail/{orderId}          AdminController.orderDetail
+POST    /admin/orders/updateStatus/{orderId}    AdminController.updateOrderStatus
+
+# Admin - Detalle de Usuario
+GET     /admin/users/detail/{userId}            AdminController.userDetail
+
+# Catch all
+*       /{controller}/{action}                  {controller}.{action}

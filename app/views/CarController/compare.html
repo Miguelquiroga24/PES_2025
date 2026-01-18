@@ -1,0 +1,240 @@
+#{extends 'main.html' /}
+#{set title:'Comparar Vehículos - BYCar' /}
+
+<div class="compare-container">
+    <!-- Header -->
+    <div class="compare-header animate-in">
+        <div class="compare-header-content">
+            <h1>Comparador de Vehículos</h1>
+            <p class="compare-subtitle">Comparando ${carsToCompare.size()} vehículos</p>
+        </div>
+        <div class="compare-actions-top">
+            <a href="@{CarController.catalog()}" class="btn-back-compare">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Volver al Catálogo
+            </a>
+            <button type="button" class="btn-clear-compare" onclick="clearCompareSelection()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+                Limpiar Selección
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla Comparativa Desktop -->
+    <div class="compare-table-wrapper animate-in">
+        <table class="compare-table">
+            <!-- Imágenes -->
+            <tr class="compare-row-images">
+                <th class="compare-label">Imagen</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell-image">
+                        <div class="compare-car-image">
+                            <img src="${car.foto1}" alt="${car.marca} ${car.modelo}">
+                        </div>
+                    </td>
+                #{/list}
+            </tr>
+
+            <!-- Marca y Modelo -->
+            <tr class="compare-row-header">
+                <th class="compare-label">Vehículo</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell-header">
+                        <span class="compare-brand">${car.marca}</span>
+                        <span class="compare-model">${car.modelo}</span>
+                        #{if car.version}
+                            <span class="compare-version">${car.version}</span>
+                        #{/if}
+                    </td>
+                #{/list}
+            </tr>
+
+            <!-- Precio (con highlight del mejor) -->
+            <tr class="compare-row-price">
+                <th class="compare-label">Precio</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell ${car.precio == precioMin ? 'highlight-best' : ''} ${car.precio == precioMax ? 'highlight-highest' : ''}">
+                        <span class="compare-price">${car.precio.format('###,###').replace(',', '.')} &euro;</span>
+                        #{if car.precio == precioMin && precioMin != precioMax}
+                            <span class="price-badge best">Mejor precio</span>
+                        #{/if}
+                    </td>
+                #{/list}
+            </tr>
+
+            <!-- Año -->
+            <tr>
+                <th class="compare-label">Año</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell">${car.year}</td>
+                #{/list}
+            </tr>
+
+            <!-- Color -->
+            <tr>
+                <th class="compare-label">Color</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell">${car.color ?: '-'}</td>
+                #{/list}
+            </tr>
+
+            <!-- Potencia -->
+            <tr class="compare-row-highlight">
+                <th class="compare-label">Potencia</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell">
+                        <span class="compare-power">${car.potencia}</span>
+                    </td>
+                #{/list}
+            </tr>
+
+            <!-- Combustible -->
+            <tr>
+                <th class="compare-label">Combustible</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell">
+                        #{if car.combustible}
+                            <span class="fuel-badge fuel-${car.combustible.toLowerCase()}">${car.combustible}</span>
+                        #{/if}
+                        #{else}
+                            -
+                        #{/else}
+                    </td>
+                #{/list}
+            </tr>
+
+            <!-- Transmisión -->
+            <tr>
+                <th class="compare-label">Transmisión</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell">${car.transmision ?: '-'}</td>
+                #{/list}
+            </tr>
+
+            <!-- Puertas -->
+            <tr>
+                <th class="compare-label">Puertas</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell">${car.puertas ?: '-'}</td>
+                #{/list}
+            </tr>
+
+            <!-- Descripción -->
+            <tr class="compare-row-description">
+                <th class="compare-label">Descripción</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell compare-cell-description">
+                        <p>${car.descripcion ?: 'Sin descripción disponible'}</p>
+                    </td>
+                #{/list}
+            </tr>
+
+            <!-- Acciones -->
+            <tr class="compare-row-actions">
+                <th class="compare-label">Acciones</th>
+                #{list items:carsToCompare, as:'car'}
+                    <td class="compare-cell">
+                        <div class="compare-actions-buttons">
+                            <a href="@{CarController.detail(car.id, 1)}" class="btn-compare-detail">
+                                Ver Detalle
+                            </a>
+                            #{if session.get('userId')}
+                                <button class="btn-compare-cart btn-add-to-cart btn-icon-only"
+                                        data-car-id="${car.id}"
+                                        title="Añadir al Carrito">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="9" cy="21" r="1"/>
+                                        <circle cx="20" cy="21" r="1"/>
+                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                    </svg>
+                                </button>
+                            #{/if}
+                        </div>
+                    </td>
+                #{/list}
+            </tr>
+        </table>
+    </div>
+
+    <!-- Vista Móvil: Cards Apiladas -->
+    <div class="compare-mobile animate-in">
+        #{list items:carsToCompare, as:'car'}
+            <div class="compare-card-mobile">
+                <div class="compare-card-image">
+                    <img src="${car.foto1}" alt="${car.marca} ${car.modelo}">
+                </div>
+                <div class="compare-card-content">
+                    <div class="compare-card-header">
+                        <span class="compare-brand">${car.marca}</span>
+                        <h3 class="compare-model">${car.modelo}</h3>
+                        #{if car.version}
+                            <span class="compare-version">${car.version}</span>
+                        #{/if}
+                    </div>
+                    <div class="compare-card-price ${car.precio == precioMin ? 'highlight-best' : ''}">
+                        <span class="compare-price">${car.precio.format('###,###').replace(',', '.')} &euro;</span>
+                        #{if car.precio == precioMin && precioMin != precioMax}
+                            <span class="price-badge best">Mejor precio</span>
+                        #{/if}
+                    </div>
+                    <div class="compare-card-specs">
+                        <div class="spec-row">
+                            <span class="spec-label">Año</span>
+                            <span class="spec-value">${car.year}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Potencia</span>
+                            <span class="spec-value">${car.potencia}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Combustible</span>
+                            <span class="spec-value">${car.combustible ?: '-'}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Transmisión</span>
+                            <span class="spec-value">${car.transmision ?: '-'}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Puertas</span>
+                            <span class="spec-value">${car.puertas ?: '-'}</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-label">Color</span>
+                            <span class="spec-value">${car.color ?: '-'}</span>
+                        </div>
+                    </div>
+                    #{if car.descripcion}
+                        <div class="compare-card-description">
+                            <p>${car.descripcion}</p>
+                        </div>
+                    #{/if}
+                    <div class="compare-card-actions">
+                        <a href="@{CarController.detail(car.id, 1)}" class="btn-compare-detail">Ver Detalle</a>
+                        #{if session.get('userId')}
+                            <button class="btn-compare-cart btn-add-to-cart" data-car-id="${car.id}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="9" cy="21" r="1"/>
+                                    <circle cx="20" cy="21" r="1"/>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                </svg>
+                                Carrito
+                            </button>
+                        #{/if}
+                    </div>
+                </div>
+            </div>
+        #{/list}
+    </div>
+
+</div>
+
+<script>
+function clearCompareSelection() {
+    localStorage.removeItem('bycar_compare_ids');
+    window.location.href = '/catalog';
+}
+</script>

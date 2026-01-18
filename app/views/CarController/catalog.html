@@ -1,0 +1,352 @@
+#{extends 'main.html' /}
+#{set title:'Catálogo - BYCar' /}
+
+<div class="catalog-container">
+    <!-- Header del Catálogo con Búsqueda -->
+    <div class="catalog-header animate-in">
+        <div class="catalog-header-content">
+            <div class="catalog-title">
+                <h1>Catálogo de Vehículos de Lujo</h1>
+                <p class="catalog-count">${totalCars} vehículos encontrados</p>
+            </div>
+            <div class="catalog-search">
+                <form action="@{CarController.catalog()}" method="GET" class="search-form">
+                    <div class="search-input-wrapper">
+                        <input type="text"
+                               name="search"
+                               class="search-input"
+                               placeholder="Buscar por marca o modelo..."
+                               value="${search ?: ''}">
+                        <button type="submit" class="search-btn">Buscar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Barra de ordenamiento y filtros activos -->
+        <div class="catalog-toolbar">
+            <div class="toolbar-left">
+                <span class="results-count">Mostrando ${cars.size()} de ${totalCars} resultados</span>
+                #{if search || marca || precioMin || precioMax || year || combustible || transmision}
+                    <a href="@{CarController.catalog()}" class="clear-all-filters">Limpiar filtros</a>
+                #{/if}
+            </div>
+            <div class="toolbar-right">
+                <label class="sort-label">Ordenar:</label>
+                <select class="sort-select" onchange="applySort(this.value)">
+                    <option value="">Por defecto</option>
+                    <option value="precio-asc" ${sortBy == 'precio' && sortOrder == 'asc' ? 'selected' : ''}>Precio: Menor a Mayor</option>
+                    <option value="precio-desc" ${sortBy == 'precio' && sortOrder == 'desc' ? 'selected' : ''}>Precio: Mayor a Menor</option>
+                    <option value="year-desc" ${sortBy == 'year' && sortOrder == 'desc' ? 'selected' : ''}>Año: Más Reciente</option>
+                    <option value="year-asc" ${sortBy == 'year' && sortOrder == 'asc' ? 'selected' : ''}>Año: Más Antiguo</option>
+                    <option value="marca-asc" ${sortBy == 'marca' && sortOrder == 'asc' ? 'selected' : ''}>Marca: A-Z</option>
+                    <option value="marca-desc" ${sortBy == 'marca' && sortOrder == 'desc' ? 'selected' : ''}>Marca: Z-A</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    #{if flash.error}
+        <div class="alert alert-danger animate-fade">
+            ${flash.error}
+        </div>
+    #{/if}
+
+    #{if flash.success}
+        <div class="alert alert-success animate-fade">
+            ${flash.success}
+        </div>
+    #{/if}
+
+    <!-- Layout Principal: Sidebar + Grid -->
+    <div class="catalog-layout">
+        <!-- Sidebar de Filtros -->
+        <aside class="filters-sidebar animate-in">
+            <div class="filters-header">
+                <h3>Filtros</h3>
+                <button type="button" class="filters-toggle-mobile" onclick="toggleFilters()">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+
+            <form action="@{CarController.catalog()}" method="GET" id="filtersForm" class="filters-form">
+                <!-- Mantener búsqueda actual -->
+                #{if search}
+                    <input type="hidden" name="search" value="${search}">
+                #{/if}
+                <!-- Mantener ordenamiento -->
+                #{if sortBy}
+                    <input type="hidden" name="sortBy" value="${sortBy}">
+                #{/if}
+                #{if sortOrder}
+                    <input type="hidden" name="sortOrder" value="${sortOrder}">
+                #{/if}
+
+                <!-- Filtro por Marca (máximo 3) -->
+                <div class="filter-group">
+                    <div class="filter-title-row">
+                        <h4 class="filter-title">Marca</h4>
+                        <span class="filter-hint">(máx. 3)</span>
+                    </div>
+                    <div class="filter-options" id="marcaOptions">
+                        #{list items:marcasDisponibles, as:'m'}
+                            <label class="filter-option">
+                                <input type="checkbox"
+                                       name="marcaCheck"
+                                       value="${m}"
+                                       class="marca-checkbox"
+                                       ${marca?.contains(m) ? 'checked' : ''}
+                                       onchange="handleMarcaChange()">
+                                <span class="filter-label">${m}</span>
+                            </label>
+                        #{/list}
+                    </div>
+                    <input type="hidden" name="marca" id="marcaHidden" value="${marca ?: ''}">
+                    #{if marca}
+                        <a href="@{CarController.catalog(1, search, null, precioMin, precioMax, year, combustible, transmision, sortBy, sortOrder)}" class="filter-clear">Limpiar</a>
+                    #{/if}
+                </div>
+
+                <!-- Filtro por Precio -->
+                <div class="filter-group">
+                    <div class="filter-title-row">
+                        <h4 class="filter-title">Precio</h4>
+                        <span class="tooltip-icon" data-tooltip="Rango según catálogo actual: ${precioMinCatalogo?.intValue()} - ${precioMaxCatalogo?.intValue()} €">?</span>
+                    </div>
+                    <div class="price-filter-container">
+                        <div class="price-field">
+                            <label class="price-label">Mín</label>
+                            <input type="number"
+                                   name="precioMin"
+                                   class="price-input"
+                                   placeholder="${precioMinCatalogo?.intValue()}"
+                                   value="${precioMin ?: ''}">
+                        </div>
+                        <div class="price-field">
+                            <label class="price-label">Máx</label>
+                            <input type="number"
+                                   name="precioMax"
+                                   class="price-input"
+                                   placeholder="${precioMaxCatalogo?.intValue()}"
+                                   value="${precioMax ?: ''}">
+                        </div>
+                    </div>
+                    <button type="submit" class="filter-apply-btn">Aplicar Precio</button>
+                    #{if precioMin || precioMax}
+                        <a href="@{CarController.catalog(1, search, marca, null, null, year, combustible, transmision, sortBy, sortOrder)}" class="filter-clear">Limpiar</a>
+                    #{/if}
+                </div>
+
+                <!-- Filtro por Año -->
+                <div class="filter-group">
+                    <h4 class="filter-title">Año</h4>
+                    <select name="year" class="filter-select" onchange="this.form.submit()">
+                        <option value="">Todos los años</option>
+                        #{list items:yearsDisponibles, as:'y'}
+                            <option value="${y}" ${year != null && year == y ? 'selected' : ''}>${y}</option>
+                        #{/list}
+                    </select>
+                </div>
+
+                <!-- Filtro por Combustible -->
+                <div class="filter-group">
+                    <h4 class="filter-title">Combustible</h4>
+                    <div class="filter-options">
+                        #{list items:combustiblesDisponibles, as:'c'}
+                            <label class="filter-option">
+                                <input type="radio"
+                                       name="combustible"
+                                       value="${c}"
+                                       ${combustible == c ? 'checked' : ''}
+                                       onchange="this.form.submit()">
+                                <span class="filter-label">${c}</span>
+                            </label>
+                        #{/list}
+                    </div>
+                    #{if combustible}
+                        <a href="@{CarController.catalog(1, search, marca, precioMin, precioMax, year, null, transmision, sortBy, sortOrder)}" class="filter-clear">Limpiar</a>
+                    #{/if}
+                </div>
+
+                <!-- Filtro por Transmisión -->
+                #{if transmisionesDisponibles.size() > 0}
+                    <div class="filter-group">
+                        <h4 class="filter-title">Transmisión</h4>
+                        <div class="filter-options">
+                            #{list items:transmisionesDisponibles, as:'t'}
+                                <label class="filter-option">
+                                    <input type="radio"
+                                           name="transmision"
+                                           value="${t}"
+                                           ${transmision == t ? 'checked' : ''}
+                                           onchange="this.form.submit()">
+                                    <span class="filter-label">${t}</span>
+                                </label>
+                            #{/list}
+                        </div>
+                        #{if transmision}
+                            <a href="@{CarController.catalog(1, search, marca, precioMin, precioMax, year, combustible, null, sortBy, sortOrder)}" class="filter-clear">Limpiar</a>
+                        #{/if}
+                    </div>
+                #{/if}
+
+                <!-- Botón Limpiar Todos -->
+                #{if search || marca || precioMin || precioMax || year || combustible || transmision}
+                    <div class="filter-group">
+                        <a href="@{CarController.catalog()}" class="clear-all-btn">Limpiar Todos los Filtros</a>
+                    </div>
+                #{/if}
+            </form>
+        </aside>
+
+        <!-- Grid de Coches -->
+        <main class="catalog-main">
+            #{if cars.size() > 0}
+                <div class="cars-grid">
+                    #{list items:cars, as:'car'}
+                        <div class="car-card animate-in" data-car-id="${car.id}">
+                            <!-- Checkbox Comparar -->
+                            <div class="compare-checkbox-wrapper">
+                                <label class="compare-checkbox-label">
+                                    <input type="checkbox"
+                                           class="compare-checkbox"
+                                           data-car-id="${car.id}"
+                                           aria-label="Añadir ${car.marca} ${car.modelo} a comparación">
+                                    <span class="compare-checkbox-text">Comparar</span>
+                                </label>
+                            </div>
+                            <!-- Botón Favorito -->
+                            <button class="btn-favorite"
+                                    data-car-id="${car.id}"
+                                    title="Añadir a favoritos"
+                                    onclick="toggleFavorite(${car.id}, this)">
+                                <svg viewBox="0 0 24 24" fill="currentColor" class="favorite-icon">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                            </button>
+                            <div class="car-image">
+                                <img src="${car.foto1}" alt="${car.marca} ${car.modelo}">
+                                <div class="car-overlay">
+                                    <a href="@{CarController.detail(car.id, page)}" class="btn-view">Ver Detalle</a>
+                                </div>
+                            </div>
+                            <div class="car-info">
+                                <div class="car-brand">${car.marca}</div>
+                                <h3 class="car-model">${car.modelo}</h3>
+                                #{if car.version}
+                                    <p class="car-version">${car.version}</p>
+                                #{/if}
+                                <div class="car-specs">
+                                    <span class="car-year">${car.year}</span>
+                                    <span class="car-fuel">${car.combustible}</span>
+                                </div>
+                                <div class="car-footer">
+                                    <p class="car-price">${car.precio.format('###,###').replace(',', '.')} &euro;</p>
+                                    <div class="car-actions">
+                                        <a href="@{CarController.detail(car.id, page)}" class="btn-premium-sm">Ver</a>
+                                        #{if session.get('userId')}
+                                            <button class="btn-add-to-cart" data-car-id="${car.id}" title="Añadir al carrito">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="9" cy="21" r="1"/>
+                                                    <circle cx="20" cy="21" r="1"/>
+                                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                                </svg>
+                                            </button>
+                                        #{/if}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    #{/list}
+                </div>
+
+                <!-- Paginación -->
+                #{if totalPages > 1}
+                    <div class="pagination">
+                        #{if page > 1}
+                            <a href="@{CarController.catalog(page - 1, search, marca, precioMin, precioMax, year, combustible, transmision, sortBy, sortOrder)}" class="pagination-btn pagination-prev">
+                                Anterior
+                            </a>
+                        #{/if}
+
+                        <div class="pagination-info">
+                            <span class="pagination-current">Página ${page}</span>
+                            <span class="pagination-total">de ${totalPages}</span>
+                        </div>
+
+                        #{if page < totalPages}
+                            <a href="@{CarController.catalog(page + 1, search, marca, precioMin, precioMax, year, combustible, transmision, sortBy, sortOrder)}" class="pagination-btn pagination-next">
+                                Siguiente
+                            </a>
+                        #{/if}
+                    </div>
+                #{/if}
+            #{/if}
+            #{else}
+                <div class="empty-state">
+                    <h3>No se encontraron vehículos</h3>
+                    #{if search || marca || precioMin || precioMax || year || combustible || transmision}
+                        <p>No hay vehículos que coincidan con los filtros seleccionados.</p>
+                        <a href="@{CarController.catalog()}" class="premium-btn">Ver Todos los Vehículos</a>
+                    #{/if}
+                    #{else}
+                        <p>Vuelve pronto para ver nuestro catálogo actualizado.</p>
+                    #{/else}
+                </div>
+            #{/else}
+        </main>
+    </div>
+</div>
+
+<script>
+var MAX_MARCAS = 3;
+
+function handleMarcaChange() {
+    var checkboxes = document.querySelectorAll('.marca-checkbox');
+    var checkedBoxes = document.querySelectorAll('.marca-checkbox:checked');
+    var hiddenInput = document.getElementById('marcaHidden');
+
+    // Si se excede el límite, desmarcar el último
+    if (checkedBoxes.length > MAX_MARCAS) {
+        event.target.checked = false;
+        alert('Máximo ' + MAX_MARCAS + ' marcas permitidas');
+        return;
+    }
+
+    // Actualizar campo oculto con las marcas seleccionadas
+    var selectedMarcas = [];
+    checkedBoxes.forEach(function(cb) {
+        selectedMarcas.push(cb.value);
+    });
+    hiddenInput.value = selectedMarcas.join(',');
+
+    // Enviar formulario
+    document.getElementById('filtersForm').submit();
+}
+
+function applySort(value) {
+    if (!value) {
+        var url = new URL(window.location.href);
+        url.searchParams.delete('sortBy');
+        url.searchParams.delete('sortOrder');
+        window.location.href = url.toString();
+        return;
+    }
+
+    var parts = value.split('-');
+    var sortBy = parts[0];
+    var sortOrder = parts[1];
+
+    var url = new URL(window.location.href);
+    url.searchParams.set('sortBy', sortBy);
+    url.searchParams.set('sortOrder', sortOrder);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+}
+
+function toggleFilters() {
+    var sidebar = document.querySelector('.filters-sidebar');
+    sidebar.classList.toggle('filters-open');
+}
+</script>

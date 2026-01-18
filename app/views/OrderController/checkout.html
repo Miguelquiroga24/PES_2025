@@ -1,0 +1,298 @@
+#{extends 'main.html' /}
+#{set title:'Checkout - BYCar' /}
+
+<div class="checkout-container">
+    <!-- Header -->
+    <div class="checkout-header animate-in">
+        <h1>Checkout</h1>
+        <p class="checkout-subtitle">Completa tu compra</p>
+    </div>
+
+    <!-- Mensajes Flash -->
+    #{if flash.error}
+        <div class="alert alert-danger animate-fade">
+            ${flash.error}
+        </div>
+    #{/if}
+
+    <div class="checkout-content animate-in">
+        <!-- Columna Principal - Formulario -->
+        <div class="checkout-form-section">
+            <form action="@{OrderController.processPayment()}" method="POST" id="checkoutForm">
+
+                <!-- Sección: Información Personal -->
+                <div class="checkout-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Información Personal
+                    </h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email"
+                                   id="email"
+                                   name="email"
+                                   value="${user.email}"
+                                   required
+                                   class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="fullName">Nombre Completo</label>
+                            <input type="text"
+                                   id="fullName"
+                                   name="fullName"
+                                   value="${user.fullName}"
+                                   required
+                                   class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Teléfono</label>
+                            <input type="tel"
+                                   id="phone"
+                                   name="phone"
+                                   value="${user.phone}"
+                                   required
+                                   class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Dirección de Entrega</label>
+                        <textarea id="address"
+                                  name="address"
+                                  required
+                                  rows="3"
+                                  class="form-control">${user.address}</textarea>
+                    </div>
+                </div>
+
+                <!-- Sección: Autorizar Pago -->
+                <div class="checkout-section payment-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Autorizar Pago con Tarjeta
+                    </h3>
+
+                    <div class="wallet-payment-info">
+                        <p>Tu compra se realizará desde tu <strong>Wallet BYCar</strong> (saldo: ${user.saldo.format('###,###').replace(',', '.')} €)</p>
+                        <p>Genera tu tarjeta de autorización para confirmar la transacción</p>
+                    </div>
+
+                    <!-- Botón Autofill -->
+                    <button type="button"
+                            onclick="autoFillCardData()"
+                            class="btn-autofill"
+                            id="btnAutofill"
+                            #{if user.saldo < car.precio}disabled#{/if}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Generar Tarjeta de Autorización
+                    </button>
+
+                    #{if user.saldo < car.precio}
+                        <div class="wallet-insufficient-warning">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span>No tienes saldo suficiente para completar esta compra</span>
+                        </div>
+                    #{/if}
+
+                    <div class="form-group">
+                        <label for="cardNumber">Número de Tarjeta</label>
+                        <input type="text"
+                               id="cardNumber"
+                               name="cardNumber"
+                               placeholder="XXXX XXXX XXXX XXXX"
+                               readonly
+                               required
+                               class="form-control card-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardHolder">Titular de la Tarjeta</label>
+                        <input type="text"
+                               id="cardHolder"
+                               name="cardHolder"
+                               data-user-fullname="${user.fullName}"
+                               placeholder="NOMBRE APELLIDO"
+                               readonly
+                               required
+                               class="form-control card-input">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cardExpiry">Fecha de Expiración</label>
+                            <input type="text"
+                                   id="cardExpiry"
+                                   name="cardExpiry"
+                                   placeholder="MM/YY"
+                                   readonly
+                                   required
+                                   class="form-control card-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="cardCVV">CVV</label>
+                            <input type="text"
+                                   id="cardCVV"
+                                   name="cardCVV"
+                                   placeholder="XXX"
+                                   readonly
+                                   required
+                                   class="form-control card-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón Confirmar -->
+                <button type="submit" class="btn-confirm-purchase" id="btnConfirm"
+                        #{if user.saldo < car.precio}disabled#{/if}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                    Confirmar Compra
+                </button>
+
+                #{if user.saldo < car.precio}
+                    <div class="checkout-recharge-cta">
+                        <a href="@{UserController.recargarSaldo()}" class="btn-recharge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Recargar Saldo
+                        </a>
+                    </div>
+                #{/if}
+
+            </form>
+        </div>
+
+        <!-- Columna Lateral - Resumen -->
+        <div class="checkout-summary-section">
+            <!-- Wallet BYCar Info -->
+            <div class="wallet-card">
+                <div class="wallet-card-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                        <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/>
+                    </svg>
+                    <span>Wallet BYCar</span>
+                </div>
+                <div class="wallet-card-balance">
+                    <span class="balance-label">Saldo disponible</span>
+                    <span class="saldo-amount">${user.saldo.format('###,###').replace(',', '.')} &euro;</span>
+                </div>
+                #{if user.saldo >= car.precio}
+                    <div class="wallet-badge wallet-badge-success">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                        Saldo suficiente
+                    </div>
+                    <div class="wallet-after-purchase">
+                        <span>Después de comprar:</span>
+                        <span>${(user.saldo - car.precio).format('###,###').replace(',', '.')} &euro;</span>
+                    </div>
+                #{/if}
+                #{else}
+                    <div class="wallet-badge wallet-badge-error">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        Saldo insuficiente
+                    </div>
+                    <div class="wallet-deficit">
+                        <span>Te faltan:</span>
+                        <span class="deficit-amount">${(car.precio - user.saldo).format('###,###').replace(',', '.')} &euro;</span>
+                    </div>
+                #{/else}
+            </div>
+
+            <div class="order-summary">
+                <h4>Resumen del Pedido</h4>
+
+                <div class="summary-car">
+                    <div class="summary-car-image">
+                        <img src="${car.foto1}" alt="${car.marca} ${car.modelo}">
+                    </div>
+                    <div class="summary-car-details">
+                        <span class="summary-brand">${car.marca}</span>
+                        <h5 class="summary-model">${car.modelo}</h5>
+                        #{if car.version}
+                            <p class="summary-version">${car.version}</p>
+                        #{/if}
+                    </div>
+                </div>
+
+                <div class="summary-specs">
+                    <div class="spec-item">
+                        <span>Año</span>
+                        <span>${car.year}</span>
+                    </div>
+                    #{if car.combustible}
+                        <div class="spec-item">
+                            <span>Combustible</span>
+                            <span>${car.combustible}</span>
+                        </div>
+                    #{/if}
+                    #{if car.potencia}
+                        <div class="spec-item">
+                            <span>Potencia</span>
+                            <span>${car.potencia}</span>
+                        </div>
+                    #{/if}
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-prices">
+                    <div class="summary-row">
+                        <span>Precio del vehículo</span>
+                        <span>${car.precio.format('###,###').replace(',', '.')} &euro;</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Impuestos incluidos</span>
+                        <span>IVA 21%</span>
+                    </div>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span>${car.precio.format('###,###').replace(',', '.')} &euro;</span>
+                </div>
+
+                <a href="@{OrderController.viewCart()}" class="back-to-cart">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    Volver al carrito
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+#{set 'moreScripts'}
+<script src="@{'/public/javascripts/checkout.js'}"></script>
+#{/set}

@@ -1,0 +1,187 @@
+#{extends 'main.html' /}
+#{set title:'Historial de Pedidos - BYCar' /}
+
+<div class="history-container">
+    <!-- Header -->
+    <div class="history-header animate-in">
+        <h1>Historial de Pedidos</h1>
+        <p class="history-subtitle">Consulta todos tus pedidos realizados</p>
+    </div>
+
+    <!-- Mensajes Flash -->
+    #{if flash.error}
+        <div class="alert alert-danger animate-fade">
+            ${flash.error}
+        </div>
+    #{/if}
+
+    #{if flash.success}
+        <div class="alert alert-success animate-fade">
+            ${flash.success}
+        </div>
+    #{/if}
+
+    #{if orders.isEmpty()}
+        <!-- Estado Vacio -->
+        <div class="history-empty animate-in">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+            </div>
+            <h2>No has realizado ningun pedido</h2>
+            <p>Explora nuestro catalogo y encuentra el vehiculo de tus suenos</p>
+            <a href="@{CarController.catalog()}" class="premium-btn">
+                Explorar Catalogo
+            </a>
+        </div>
+    #{/if}
+    #{else}
+        <!-- Lista de Pedidos -->
+        <div class="orders-list animate-in">
+            #{list items:orders, as:'order'}
+                <div class="order-card">
+                    <div class="order-card-image">
+                        <img src="${order.car.foto1}" alt="${order.car.marca} ${order.car.modelo}">
+                    </div>
+                    <div class="order-card-content">
+                        <div class="order-card-header">
+                            <div class="order-card-info">
+                                <span class="order-id">#${order.id}</span>
+                                <span class="order-date">
+                                    ${order.fechaCreacion.format('dd/MM/yyyy')}
+                                </span>
+                            </div>
+                            <span class="order-status-badge status-${order.estado}">
+                                #{if order.estado == 'pagado'}
+                                    Pagado
+                                #{/if}
+                                #{elseif order.estado == 'pendiente_pago'}
+                                    Pendiente
+                                #{/elseif}
+                                #{elseif order.estado == 'entregado'}
+                                    Entregado
+                                #{/elseif}
+                                #{elseif order.estado == 'cancelado'}
+                                    Cancelado
+                                #{/elseif}
+                                #{else}
+                                    ${order.estado}
+                                #{/else}
+                            </span>
+                        </div>
+                        <div class="order-card-car">
+                            <span class="car-brand">${order.car.marca}</span>
+                            <h3 class="car-model">${order.car.modelo}</h3>
+                            #{if order.car.version}
+                                <span class="car-version">${order.car.version}</span>
+                            #{/if}
+                        </div>
+                        <div class="order-card-footer">
+                            <span class="order-price">
+                                ${order.car.precio.format('###,###').replace(',', '.')} &euro;
+                            </span>
+                            <div class="order-actions">
+                                <a href="@{OrderController.orderDetail(order.id)}" class="btn-view-detail">
+                                    <span>Ver Detalle</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        <polyline points="12 5 19 12 12 19"></polyline>
+                                    </svg>
+                                </a>
+                                #{if order.estado == 'pagado'}
+                                    <form id="confirmForm-${order.id}" action="@{OrderController.confirmDelivery(order.id)}" method="POST" class="confirm-form">
+                                        <button type="button" class="btn-confirm-delivery" onclick="showConfirmModal(${order.id}, '${order.car.marca}', '${order.car.modelo}')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            <span>Confirmar Recogida</span>
+                                        </button>
+                                    </form>
+                                #{/if}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            #{/list}
+        </div>
+
+        <!-- Resumen -->
+        <div class="history-summary animate-in">
+            <div class="summary-stat">
+                <span class="stat-value">${orders.size()}</span>
+                <span class="stat-label">Pedidos totales</span>
+            </div>
+        </div>
+    #{/else}
+</div>
+
+<!-- Modal de Confirmacion -->
+<div id="confirmModal" class="confirm-modal-overlay">
+    <div class="confirm-modal">
+        <div class="confirm-modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <h3 class="confirm-modal-title">Confirmar Recogida</h3>
+        <p class="confirm-modal-text">
+            ¿Has recogido tu <strong id="modalCarName"></strong>?
+        </p>
+        <p class="confirm-modal-subtext">
+            Esta accion no se puede deshacer.
+        </p>
+        <div class="confirm-modal-actions">
+            <button type="button" class="btn-modal-cancel" onclick="hideConfirmModal()">
+                Cancelar
+            </button>
+            <button type="button" class="btn-modal-confirm" id="btnConfirmDelivery">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentOrderId = null;
+
+    function showConfirmModal(orderId, marca, modelo) {
+        currentOrderId = orderId;
+        document.getElementById('modalCarName').textContent = marca + ' ' + modelo;
+        document.getElementById('confirmModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideConfirmModal() {
+        document.getElementById('confirmModal').classList.remove('active');
+        document.body.style.overflow = '';
+        currentOrderId = null;
+    }
+
+    document.getElementById('btnConfirmDelivery').addEventListener('click', function() {
+        if (currentOrderId) {
+            document.getElementById('confirmForm-' + currentOrderId).submit();
+        }
+    });
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('confirmModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideConfirmModal();
+        }
+    });
+
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideConfirmModal();
+        }
+    });
+</script>

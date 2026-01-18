@@ -1,0 +1,6 @@
+tmp/ 
+logs/ 
+.claude/ 
+*.lock.db 
+*.trace.db 
+nul 

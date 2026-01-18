@@ -1,0 +1,143 @@
+#{extends 'main.html' /}
+#{set title:'Pedido Confirmado - BYCar' /}
+
+<div class="confirmation-container">
+    <div class="confirmation-content animate-in">
+        <!-- Icono de éxito -->
+        <div class="confirmation-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+        </div>
+
+        <!-- Mensaje principal -->
+        <h1>¡Compra Realizada!</h1>
+        <p class="confirmation-message">
+            Tu pedido ha sido procesado correctamente. Recibirás un email de confirmación en <strong>${order.emailConfirmacion}</strong>
+        </p>
+
+        <!-- Número de orden -->
+        <div class="order-number">
+            <span class="label">Número de Pedido</span>
+            <span class="number">#${order.id}</span>
+        </div>
+
+        <!-- Detalles del pedido -->
+        <div class="order-details">
+            <h3>Detalles del Pedido</h3>
+
+            <div class="order-car">
+                <div class="order-car-image">
+                    <img src="${order.car.foto1}" alt="${order.car.marca} ${order.car.modelo}">
+                </div>
+                <div class="order-car-info">
+                    <span class="car-brand">${order.car.marca}</span>
+                    <h4 class="car-model">${order.car.modelo}</h4>
+                    #{if order.car.version}
+                        <p class="car-version">${order.car.version}</p>
+                    #{/if}
+                    <div class="car-specs">
+                        <span>${order.car.year}</span>
+                        #{if order.car.combustible}
+                            <span>${order.car.combustible}</span>
+                        #{/if}
+                    </div>
+                </div>
+                <div class="order-car-price">
+                    ${order.car.precio.format('###,###').replace(',', '.')} &euro;
+                </div>
+            </div>
+
+            <div class="order-info-grid">
+                <div class="info-card">
+                    <h5>Datos de Contacto</h5>
+                    <p><strong>${order.fullName}</strong></p>
+                    <p>${order.emailConfirmacion}</p>
+                    <p>${order.phone}</p>
+                </div>
+                <div class="info-card">
+                    <h5>Direccion de Entrega</h5>
+                    <p>${order.address}</p>
+                </div>
+                <div class="info-card">
+                    <h5>Estado del Pedido</h5>
+                    <span class="order-status status-${order.estado}">
+                        #{if order.estado == 'pagado'}
+                            Pagado
+                        #{/if}
+                        #{elseif order.estado == 'pendiente_pago'}
+                            Pendiente de Pago
+                        #{/elseif}
+                        #{elseif order.estado == 'entregado'}
+                            Entregado
+                        #{/elseif}
+                        #{else}
+                            ${order.estado}
+                        #{/else}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Resumen Financiero -->
+            <div class="financial-summary">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                        <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/>
+                    </svg>
+                    Resumen Financiero
+                </h3>
+                <div class="financial-grid">
+                    <div class="financial-item">
+                        <span class="financial-label">Precio pagado</span>
+                        <span class="financial-value">${order.car.precio.format('###,###').replace(',', '.')} &euro;</span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="financial-label">Metodo de pago</span>
+                        <span class="financial-value wallet-method">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                                <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/>
+                            </svg>
+                            Wallet BYCar
+                        </span>
+                    </div>
+                    #{if saldoAnterior}
+                        <div class="financial-item">
+                            <span class="financial-label">Saldo anterior</span>
+                            <span class="financial-value">${saldoAnterior.format('###,###').replace(',', '.')} &euro;</span>
+                        </div>
+                    #{/if}
+                    <div class="financial-item highlight">
+                        <span class="financial-label">Saldo actual</span>
+                        <span class="financial-value">${user.saldo.format('###,###').replace(',', '.')} &euro;</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="confirmation-actions">
+            <a href="@{CarController.catalog()}" class="btn-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Seguir Explorando
+            </a>
+            <a href="@{OrderController.history()}" class="btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                Ver Mis Pedidos
+            </a>
+        </div>
+    </div>
+</div>

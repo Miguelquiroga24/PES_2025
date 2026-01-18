@@ -1,0 +1,134 @@
+#{extends 'main.html' /}
+#{set title:'Mis Favoritos - BYCar' /}
+
+<div class="favorites-container">
+    <!-- Header de Favoritos -->
+    <div class="favorites-header animate-in">
+        <div class="favorites-header-content">
+            <div class="favorites-title">
+                <h1>Mis Favoritos</h1>
+                <p class="favorites-count">${totalFavorites} vehículo${totalFavorites != 1 ? 's' : ''} guardado${totalFavorites != 1 ? 's' : ''}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensajes Flash -->
+    #{if flash.error}
+        <div class="alert alert-danger animate-fade">
+            ${flash.error}
+        </div>
+    #{/if}
+
+    #{if flash.success}
+        <div class="alert alert-success animate-fade">
+            ${flash.success}
+        </div>
+    #{/if}
+
+    <!-- Grid de Favoritos o Estado Vacío -->
+    #{if favoriteCars.size() > 0}
+        <div class="favorites-grid animate-in">
+            #{list items:favoriteCars, as:'car'}
+                <div class="car-card animate-in" data-car-id="${car.id}">
+                    <!-- Botón Favorito -->
+                    <button class="btn-favorite active"
+                            data-car-id="${car.id}"
+                            title="Quitar de favoritos"
+                            onclick="toggleFavorite(${car.id}, this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="favorite-icon">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </button>
+                    <div class="car-image">
+                        <img src="${car.foto1}" alt="${car.marca} ${car.modelo}">
+                        <div class="car-overlay">
+                            <a href="@{CarController.detail(car.id, 1)}" class="btn-view">Ver Detalle</a>
+                        </div>
+                    </div>
+                    <div class="car-info">
+                        <div class="car-brand">${car.marca}</div>
+                        <h3 class="car-model">${car.modelo}</h3>
+                        #{if car.version}
+                            <p class="car-version">${car.version}</p>
+                        #{/if}
+                        <div class="car-specs">
+                            <span class="car-year">${car.year}</span>
+                            <span class="car-fuel">${car.combustible}</span>
+                        </div>
+                        <div class="car-footer">
+                            <p class="car-price">${car.precio.format('###,###').replace(',', '.')} &euro;</p>
+                            <a href="@{CarController.detail(car.id, 1)}" class="btn-premium-sm">Ver</a>
+                        </div>
+                    </div>
+                </div>
+            #{/list}
+        </div>
+    #{/if}
+    #{else}
+        <!-- Estado Vacío -->
+        <div class="favorites-empty animate-in">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+            </div>
+            <h2>No tienes favoritos aún</h2>
+            <p>Explora nuestro catálogo y guarda los vehículos que más te gusten</p>
+            <a href="@{CarController.catalog()}" class="premium-btn">
+                Explorar Catálogo
+            </a>
+        </div>
+    #{/else}
+</div>
+
+<script>
+// Función para quitar de favoritos desde la página de favoritos
+function toggleFavorite(carId, button) {
+    // En esta página siempre es quitar
+    fetch('/favorites/remove?carId=' + carId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Animar y remover la card
+            var card = button.closest('.car-card');
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+
+            setTimeout(function() {
+                card.remove();
+
+                // Actualizar contador
+                updateFavoriteCount();
+
+                // Mostrar toast
+                showToast('Eliminado de favoritos', 'removed');
+
+                // Verificar si quedó vacío
+                var remainingCards = document.querySelectorAll('.car-card');
+                if (remainingCards.length === 0) {
+                    location.reload();
+                } else {
+                    // Actualizar contador en header
+                    var countEl = document.querySelector('.favorites-count');
+                    if (countEl) {
+                        var count = remainingCards.length;
+                        countEl.textContent = count + ' vehículo' + (count !== 1 ? 's' : '') + ' guardado' + (count !== 1 ? 's' : '');
+                    }
+                }
+            }, 300);
+        } else {
+            showToast(data.error || 'Error al eliminar', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'error');
+    });
+}
+</script>

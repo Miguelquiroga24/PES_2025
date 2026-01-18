@@ -1,0 +1,132 @@
+#{extends 'main.html' /}
+#{set title:'Recargar Saldo - BYCar' /}
+
+<div class="recharge-container">
+    <div class="recharge-card animate-in">
+        <!-- Header -->
+        <div class="recharge-header">
+            <div class="recharge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                    <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"/>
+                </svg>
+            </div>
+            <h1>Recargar Wallet BYCar</h1>
+            <p>Anade fondos a tu cartera virtual</p>
+        </div>
+
+        <!-- Saldo Actual -->
+        <div class="current-balance-box">
+            <span class="label">Saldo actual</span>
+            <span class="amount">${user.saldo.format('###,###').replace(',', '.')} &euro;</span>
+        </div>
+
+        <!-- Mensajes Flash -->
+        #{if flash.error}
+            <div class="alert alert-danger animate-fade">
+                ${flash.error}
+            </div>
+        #{/if}
+
+        <!-- Formulario -->
+        <form action="@{UserController.processRecargarSaldo()}" method="POST" class="recharge-form">
+            <div class="form-group">
+                <label for="monto">Monto a recargar</label>
+                <div class="amount-input-wrapper">
+                    <input type="number"
+                           id="monto"
+                           name="monto"
+                           min="1000"
+                           max="1000000"
+                           step="1000"
+                           placeholder="50000"
+                           required
+                           class="amount-input">
+                    <span class="currency-symbol">&euro;</span>
+                </div>
+                <small class="form-hint">Minimo: 1.000 € | Maximo: 1.000.000 €</small>
+            </div>
+
+            <!-- Opciones Rapidas -->
+            <div class="quick-amounts">
+                <span class="quick-label">Recarga rapida:</span>
+                <div class="quick-buttons">
+                    <button type="button" class="quick-btn" onclick="setAmount(50000)">50.000 €</button>
+                    <button type="button" class="quick-btn" onclick="setAmount(100000)">100.000 €</button>
+                    <button type="button" class="quick-btn" onclick="setAmount(250000)">250.000 €</button>
+                    <button type="button" class="quick-btn" onclick="setAmount(500000)">500.000 €</button>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="recharge-preview" id="rechargePreview" style="display: none;">
+                <div class="preview-row">
+                    <span>Saldo actual:</span>
+                    <span>${user.saldo.format('###,###').replace(',', '.')} &euro;</span>
+                </div>
+                <div class="preview-row add">
+                    <span>Recarga:</span>
+                    <span id="previewAmount">+0 €</span>
+                </div>
+                <div class="preview-divider"></div>
+                <div class="preview-row total">
+                    <span>Nuevo saldo:</span>
+                    <span id="previewTotal">${user.saldo.format('###,###').replace(',', '.')} &euro;</span>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="recharge-actions">
+                <a href="@{UserController.profile()}" class="btn-cancel">Cancelar</a>
+                <button type="submit" class="btn-confirm-recharge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Confirmar Recarga
+                </button>
+            </div>
+        </form>
+
+        <!-- Nota -->
+        <div class="recharge-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span>Simulacion de recarga. Los fondos se anaden instantaneamente a tu Wallet BYCar.</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    var currentSaldo = ${user.saldo};
+
+    function setAmount(amount) {
+        document.getElementById('monto').value = amount;
+        updatePreview();
+    }
+
+    function updatePreview() {
+        var monto = parseFloat(document.getElementById('monto').value) || 0;
+        var preview = document.getElementById('rechargePreview');
+        var previewAmount = document.getElementById('previewAmount');
+        var previewTotal = document.getElementById('previewTotal');
+
+        if (monto > 0) {
+            preview.style.display = 'block';
+            previewAmount.textContent = '+' + formatNumber(monto) + ' €';
+            previewTotal.textContent = formatNumber(currentSaldo + monto) + ' €';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    document.getElementById('monto').addEventListener('input', updatePreview);
+</script>

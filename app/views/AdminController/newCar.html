@@ -1,0 +1,249 @@
+#{extends 'main.html' /}
+#{set title:'Crear Nuevo Coche - Admin BYCar' /}
+
+<div class="admin-container">
+    <!-- Sidebar de navegación admin -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <div class="admin-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <span>Panel Admin</span>
+            </div>
+        </div>
+        <nav class="admin-nav">
+            <a href="@{AdminController.dashboard()}" class="admin-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="@{AdminController.manageCars()}" class="admin-nav-link active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8c0 .1-.1.2-.1.3V15c0 .6.4 1 1 1h2"/>
+                    <circle cx="7" cy="17" r="2"/>
+                    <path d="M9 17h6"/>
+                    <circle cx="17" cy="17" r="2"/>
+                </svg>
+                Coches
+            </a>
+            <a href="@{AdminController.manageOrders()}" class="admin-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                Pedidos
+            </a>
+            <a href="@{AdminController.manageUsers()}" class="admin-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Usuarios
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <a href="@{Application.index()}" class="admin-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Volver al Sitio
+            </a>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="admin-content">
+        <div class="admin-header-row">
+            <div>
+                <h1>Crear Nuevo Coche</h1>
+                <p class="admin-subtitle">Añade un nuevo vehículo al catálogo</p>
+            </div>
+            <a href="@{AdminController.manageCars()}" class="btn-admin-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Volver
+            </a>
+        </div>
+
+        #{if flash.error}
+            <div class="alert-admin alert-error">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                ${flash.error}
+            </div>
+        #{/if}
+
+        <div class="car-form-container">
+            <form action="@{AdminController.createCar()}" method="POST" class="car-form">
+                <!-- Información Básica -->
+                <div class="form-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        Información Básica
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="marca">Marca <span class="required">*</span></label>
+                            <input type="text" id="marca" name="marca" class="form-control"
+                                   placeholder="Ej: Tesla, BMW, Porsche..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modelo">Modelo <span class="required">*</span></label>
+                            <input type="text" id="modelo" name="modelo" class="form-control"
+                                   placeholder="Ej: Model S, Serie 3..." required>
+                        </div>
+                    </div>
+                    <div class="form-row form-row-3">
+                        <div class="form-group">
+                            <label for="version">Versión</label>
+                            <input type="text" id="version" name="version" class="form-control"
+                                   placeholder="Ej: Long Range, M Sport...">
+                        </div>
+                        <div class="form-group">
+                            <label for="year">Año <span class="required">*</span></label>
+                            <input type="number" id="year" name="year" class="form-control"
+                                   min="2000" max="2026" value="2024" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="precio">Precio (EUR) <span class="required">*</span></label>
+                            <input type="number" id="precio" name="precio" class="form-control"
+                                   step="0.01" min="1" placeholder="Ej: 89990" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Especificaciones -->
+                <div class="form-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        Especificaciones
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="potencia">Potencia <span class="required">*</span></label>
+                            <input type="text" id="potencia" name="potencia" class="form-control"
+                                   placeholder="Ej: 450 CV, electrico" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="combustible">Combustible</label>
+                            <select id="combustible" name="combustible" class="form-control">
+                                <option value="">Seleccionar...</option>
+                                <option value="Electrico">Electrico</option>
+                                <option value="Gasolina">Gasolina</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Hibrido">Hibrido</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row form-row-3">
+                        <div class="form-group">
+                            <label for="color">Color</label>
+                            <input type="text" id="color" name="color" class="form-control"
+                                   placeholder="Ej: Rojo, Negro, Blanco...">
+                        </div>
+                        <div class="form-group">
+                            <label for="puertas">Puertas</label>
+                            <select id="puertas" name="puertas" class="form-control">
+                                <option value="">Seleccionar...</option>
+                                <option value="2">2 puertas</option>
+                                <option value="3">3 puertas</option>
+                                <option value="4">4 puertas</option>
+                                <option value="5">5 puertas</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transmision">Transmisión</label>
+                            <select id="transmision" name="transmision" class="form-control">
+                                <option value="">Seleccionar...</option>
+                                <option value="Automatica">Automatica</option>
+                                <option value="Manual">Manual</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <div class="form-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                        Descripción
+                    </h3>
+                    <div class="form-group">
+                        <label for="descripcion">Descripción del vehículo</label>
+                        <textarea id="descripcion" name="descripcion" class="form-control" rows="4"
+                                  placeholder="Descripción detallada del vehículo, características destacadas, equipamiento especial..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Imagenes -->
+                <div class="form-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        Imágenes (URLs)
+                    </h3>
+                    <div class="form-group">
+                        <label for="foto1">Foto Principal <span class="required">*</span></label>
+                        <input type="text" id="foto1" name="foto1" class="form-control"
+                               placeholder="/public/images/cars/nombre_imagen_1.jpg" required>
+                        <small class="form-hint">Ruta relativa desde la carpeta public o URL completa</small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="foto2">Foto 2</label>
+                            <input type="text" id="foto2" name="foto2" class="form-control"
+                                   placeholder="/public/images/cars/nombre_imagen_2.jpg">
+                        </div>
+                        <div class="form-group">
+                            <label for="foto3">Foto 3</label>
+                            <input type="text" id="foto3" name="foto3" class="form-control"
+                                   placeholder="/public/images/cars/nombre_imagen_3.jpg">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="form-actions">
+                    <a href="@{AdminController.manageCars()}" class="btn-admin-secondary">Cancelar</a>
+                    <button type="submit" class="btn-admin-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Crear Coche
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
